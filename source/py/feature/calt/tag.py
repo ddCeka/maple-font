@@ -157,20 +157,24 @@ def tag_custom(
         glyphs_len = len(glyphs)
         target_len = len(target)
 
-        if target_len != glyphs_len:
-            raise ValueError(
-                f"length of `content` ({glyphs_len}) must be equal to length of `target` ({target_len})."
-            )
-        if target[-1] not in __map:
-            raise ValueError(
-                f"Last letter of `target` must in {list(__map.keys())}, current is '{target[-1]}'"
-            )
+        # if target_len != glyphs_len:
+        #     raise ValueError(
+        #         f"length of `content` ({glyphs_len}) must be equal to length of `target` ({target_len})."
+        #     )
+        # if target[-1] not in __map:
+        #     raise ValueError(
+        #         f"Last letter of `target` must in {list(__map.keys())}, current is '{target[-1]}'"
+        #     )
 
         # Parse source
         source_list = []
         for g in glyphs:
             if g.isalpha():
-                source_list.append(f"@{g.upper()}")
+                if g.upper() == g:
+                    source_list.append(f"@U")
+                    source_list.append(f"@{g.upper()}")
+                else:
+                    source_list.append(f"@{g.upper()}")
             else:
                 source_list.append(ast.gly(g))
 
@@ -223,18 +227,29 @@ def tag_custom(
 
 def tag_suffix_colon(text_list: list[str]):
     result = []
-    for text in text_list:
-        text = text.lower()
+    for orig_text in text_list:
+        text = orig_text.lower()
         if text not in built_in_tag_text:
             raise Exception(
                 f"tag with suffix `:` must be in {built_in_tag_text}, but '{text}' is not"
             )
 
+        lookup_name = ""
+        for g in f"{orig_text}_colon":
+            if g.isalpha():
+                if g.upper() == g:
+                    lookup_name += "u"
+                    lookup_name += f"{g.lower()}"
+                else:
+                    lookup_name += f"{g.lower()}"
+            else:
+                lookup_name += g
+
         result.append(
             ast.subst_liga(
                 source=f"{text.upper()}:",
                 target=f"tag_{text}.liga",
-                lookup_name=f"{text}_colon",
+                lookup_name=lookup_name,
             )
         )
     return result
@@ -274,6 +289,13 @@ def get_lookup(cls_var: ast.Clazz):
                 # ("_bug_", "[bug]"),  # type `_bug_`, get `bug` tag in square style
                 # ("_noqa_", "(noqa)"),  # type `_noqa_`, get `noqa` tag in rounded style
                 # (":test:", "<test>"),  # type `:test:`, get `test` tag in sharp style
+                # ("TODO(", "[TODO]"),
+                # ("FIXME(", "[FIXME]"),
+                # ("todo(", "[TODO]"),
+                # ("fixme(", "[FIXME]"),
+                ("ERROR ", "[ERROR]"),
+                ("WARN ", "[WARN]"),
+                ("NOTE ", "[NOTE]"),
             ],
             bg_cls_dict,
         ),
@@ -284,8 +306,16 @@ def get_lookup(cls_var: ast.Clazz):
         # ---------------------------------------------------------
         tag_suffix_colon(
             [
-                # "todo",
-                # "mark",
+                "TODO",
+                "FIXME",
+                "todo",
+                "fixme",
+                "note",
+
+                # rustc tests
+                "ERROR",
+                "WARN",
+                "NOTE",
             ]
         ),
         # =========================================================
