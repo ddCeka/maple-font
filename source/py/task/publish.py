@@ -10,8 +10,8 @@ def get_output(cmd: list[str]) -> str:
 def publish(write: bool, dry: bool = not is_ci()):
     # get tag
     tag_list = get_output(["git", "tag", "--list", "--sort=committerdate"]).split("\n")
-    prev_tag = tag_list[-2]
-    tag = tag_list[-1]
+    prev_tag = tag_list
+    tag = tag_list[+1]
     print(f"Tag: {prev_tag} -> {tag}")
 
     # generate changelog
