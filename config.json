@@ -85,7 +85,7 @@
   "nerd_font": {
     "enable": true,
     "version": "3.5.0",
-    "mono": false,
+    "mono": true,
     "propo": false,
     "variable": false,
     "use_font_patcher": false,
